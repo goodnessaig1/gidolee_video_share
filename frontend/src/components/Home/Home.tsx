@@ -5,6 +5,7 @@ import PageLayout from "../common/PageLayout";
 import flag from "../../assets/flag.svg";
 import { useAuth } from "../context/AuthContests";
 import { useContents } from "../../utils/hooks";
+import ProfilePicture from "../../utils/ProfilePicture";
 
 interface ContentItem {
   _id: string;
@@ -188,6 +189,8 @@ const Home = () => {
                       preload={index < 3}
                       numberOfComments={video.commentCount}
                       likesCount={video.likeCount}
+                      videoId={video._id}
+                      user={video?.user}
                     />
                   </div>
                 ))}
@@ -204,10 +207,9 @@ const Home = () => {
           {user ? (
             <div className="flex flex-row items-center gap-2">
               <div className="rounded-full bg-purple">
-                <img
-                  src={user?.profilePicture}
-                  className="size-8 rounded-full object-cover"
-                  alt=""
+                <ProfilePicture
+                  image={user?.profilePicture}
+                  username={user?.fullName}
                 />
               </div>
               <div className="flex flex-col">

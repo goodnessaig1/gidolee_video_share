@@ -2,7 +2,7 @@
 import { ReactNode, useState } from "react";
 import { createContext, useContext } from "react";
 import { useUser } from "../../utils/hooks";
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;

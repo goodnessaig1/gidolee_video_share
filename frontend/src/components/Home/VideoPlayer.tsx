@@ -8,7 +8,9 @@ import {
   FaPause,
   FaPlay,
 } from "react-icons/fa";
-import { useAuth } from "../context/AuthContests";
+import { useAuth, type User } from "../context/AuthContests";
+import { CommentModal } from "./CommentModal";
+import ProfilePicture from "../../utils/ProfilePicture";
 
 // Extend Window interface to include hasInteracted
 declare global {
@@ -28,6 +30,8 @@ interface VideoPlayerProps {
   preload?: boolean;
   numberOfComments?: number;
   likesCount?: number;
+  videoId?: string;
+  user: Partial<User>;
 }
 
 export const VideoPlayer = ({
@@ -41,11 +45,14 @@ export const VideoPlayer = ({
   genre,
   numberOfComments,
   likesCount,
+  videoId,
+  user,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [likes, setLikes] = useState(likesCount || 0);
   const { showUploadModal } = useAuth();
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isActive) {
@@ -205,6 +212,14 @@ export const VideoPlayer = ({
     setLikes((prev) => (prev || 0) + 1);
   };
 
+  const openCommentModal = () => {
+    setIsCommentModalOpen(true);
+  };
+
+  const closeCommentModal = () => {
+    setIsCommentModalOpen(false);
+  };
+
   return (
     <div className="flex gap-4 h-full py-4">
       <div className="w-full h-full relative">
@@ -245,6 +260,10 @@ export const VideoPlayer = ({
 
       <div className="mt-auto">
         <div className="space-y-4 text-black">
+          <ProfilePicture
+            image={user?.profilePicture ?? ""}
+            username={user?.fullName ?? ""}
+          />
           <button
             onClick={handleLike}
             className="flex flex-col items-center hover:text-pink-500 transition"
@@ -252,7 +271,10 @@ export const VideoPlayer = ({
             <FaHeart className="text-xl" />
             <span className="text-xs mt-1">{likes}</span>
           </button>
-          <button className="flex flex-col items-center hover:text-blue-400 transition">
+          <button
+            onClick={openCommentModal}
+            className="flex flex-col items-center hover:text-blue-400 transition"
+          >
             <FaCommentDots className="text-xl" />
             <span className="text-xs mt-1">{numberOfComments}</span>
           </button>
@@ -262,6 +284,16 @@ export const VideoPlayer = ({
           </button>
         </div>
       </div>
+
+      {videoId && (
+        <CommentModal
+          isOpen={isCommentModalOpen}
+          onClose={closeCommentModal}
+          videoId={videoId}
+          videoTitle={caption}
+          username={username}
+        />
+      )}
     </div>
   );
 };

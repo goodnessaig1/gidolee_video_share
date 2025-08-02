@@ -6,6 +6,7 @@ import { LiaUserCircle, LiaUserPlusSolid } from "react-icons/lia";
 import { BiLogOut } from "react-icons/bi";
 import { useAuth } from "../context/AuthContests";
 import VideoUploadModal from "../Upload/Upload";
+import ProfilePicture from "../../utils/ProfilePicture";
 
 const MenuBar = ({ openModal }: { openModal: () => void }) => {
   const { user, showUploadModal, setShowUploadModal } = useAuth();
@@ -92,10 +93,9 @@ const MenuBar = ({ openModal }: { openModal: () => void }) => {
           <div className="absolute bottom-0 pb-10">
             <div className="flex flex-row items-center gap-1">
               <div className="rounded-full bg-purple">
-                <img
-                  src={user?.profilePicture}
-                  className="size-8 rounded-full object-cover"
-                  alt=""
+                <ProfilePicture
+                  image={user?.profilePicture}
+                  username={user?.fullName}
                 />
               </div>
               <span className="">{user?.fullName?.split(" ")[0]}</span>

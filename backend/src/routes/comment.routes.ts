@@ -1,10 +1,11 @@
 import express from "express";
 import commentController from "../controllers/comment.controller";
+import { isLoggedIn } from "../middleware/isLoggedIn";
 
 const router = express.Router();
 
 // Comment routes
-router.post("/", commentController.createComment as any);
+router.post("/", isLoggedIn, commentController.createComment as any);
 router.get(
   "/content/:contentId",
   commentController.getCommentsByContent as any

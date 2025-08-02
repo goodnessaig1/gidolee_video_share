@@ -7,7 +7,7 @@ class CommentController {
   // Create new comment
   async createComment(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?._id;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
