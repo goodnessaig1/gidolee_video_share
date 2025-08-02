@@ -9,6 +9,26 @@ import {
   FaPlay,
 } from "react-icons/fa";
 
+// Extend Window interface to include hasInteracted
+declare global {
+  interface Window {
+    hasInteracted: boolean;
+  }
+}
+
+interface VideoPlayerProps {
+  src: string;
+  username: string;
+  caption: string;
+  isMuted: boolean;
+  genre?: string;
+  onToggleMute: () => void;
+  isActive: boolean;
+  preload?: boolean;
+  numberOfComments?: number;
+  likesCount?: number;
+}
+
 export const VideoPlayer = ({
   src,
   username,
@@ -20,21 +40,10 @@ export const VideoPlayer = ({
   genre,
   numberOfComments,
   likesCount,
-}: {
-  src: string;
-  username: string;
-  genre: string;
-  caption: string;
-  isMuted: boolean;
-  onToggleMute: () => void;
-  isActive: boolean;
-  preload: boolean;
-  numberOfComments: number;
-  likesCount: number;
-}) => {
+}: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [likes, setLikes] = useState(likesCount);
+  const [likes, setLikes] = useState(likesCount || 0);
 
   // Reset playing state when video becomes inactive
   useEffect(() => {
@@ -46,10 +55,13 @@ export const VideoPlayer = ({
   // Handle play/pause when active state changes
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      console.log(`Video ${src} - No video element found`);
+      return;
+    }
 
     console.log(
-      `Video ${src} - isActive: ${isActive}, isPlaying: ${isPlaying}, isMuted: ${isMuted}`
+      `Video ${src} - isActive: ${isActive}, isPlaying: ${isPlaying}, isMuted: ${isMuted}, readyState: ${video.readyState}`
     );
 
     const handlePlayback = async () => {
@@ -57,21 +69,45 @@ export const VideoPlayer = ({
         if (isActive) {
           console.log(`Starting playback for video: ${src}`);
 
-          // Set mute state first
-          video.muted = isMuted;
+          // For autoplay to work, we need to start muted initially
+          // Then unmute after user interaction
+          const shouldStartMuted = !window.hasInteracted;
+          video.muted = shouldStartMuted;
+          console.log(
+            `Set video muted to: ${shouldStartMuted} (autoplay strategy)`
+          );
 
           // Always try to play immediately, then handle loading if needed
           try {
+            console.log(`Attempting to play video: ${src}`);
             await video.play();
+            console.log(`Successfully started playing: ${src}`);
             setIsPlaying(true);
-          } catch {
-            console.log("Initial play failed, loading video first");
+
+            // If we started muted due to autoplay restrictions, unmute after a short delay
+            if (shouldStartMuted && !isMuted) {
+              setTimeout(() => {
+                if (video && window.hasInteracted) {
+                  video.muted = false;
+                  console.log(`Unmuted video after autoplay: ${src}`);
+                }
+              }, 100);
+            }
+          } catch (playError) {
+            console.log(
+              "Initial play failed, loading video first. Error:",
+              playError
+            );
             // If initial play fails, load the video and try again
             if (video.readyState < 2) {
               // HAVE_CURRENT_DATA
+              console.log(
+                `Loading video: ${src}, readyState: ${video.readyState}`
+              );
               video.load();
               await new Promise((resolve) => {
                 const handleCanPlay = () => {
+                  console.log(`Video can play: ${src}`);
                   video.removeEventListener("canplay", handleCanPlay);
                   resolve(true);
                 };
@@ -79,7 +115,9 @@ export const VideoPlayer = ({
               });
             }
 
+            console.log(`Retrying play after load: ${src}`);
             await video.play();
+            console.log(`Successfully started playing after load: ${src}`);
             setIsPlaying(true);
           }
         } else {
@@ -153,7 +191,7 @@ export const VideoPlayer = ({
   };
 
   const handleLike = () => {
-    setLikes((prev) => prev + 1);
+    setLikes((prev) => (prev || 0) + 1);
   };
 
   return (

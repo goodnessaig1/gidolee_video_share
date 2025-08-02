@@ -58,13 +58,43 @@ const Home = () => {
     }
   }, [contents, activeVideo]);
 
+  // Track user interaction to enable autoplay with sound
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (!window.hasInteracted) {
+        console.log("User interaction detected - enabling autoplay with sound");
+        window.hasInteracted = true;
+      }
+    };
+
+    // Listen for various user interactions
+    document.addEventListener("click", handleUserInteraction);
+    document.addEventListener("touchstart", handleUserInteraction);
+    document.addEventListener("keydown", handleUserInteraction);
+    document.addEventListener("scroll", handleUserInteraction);
+
+    return () => {
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+      document.removeEventListener("keydown", handleUserInteraction);
+      document.removeEventListener("scroll", handleUserInteraction);
+    };
+  }, []);
+
   const handleIntersection = useCallback(
     (entries: IntersectionObserverEntry[]) => {
+      console.log(
+        "Intersection observer triggered with entries:",
+        entries.length
+      );
+
       entries.forEach((entry) => {
         const videoIdAttr = entry.target.getAttribute("data-video-id");
+        console.log("Entry target:", entry.target, "videoIdAttr:", videoIdAttr);
 
         if (videoIdAttr) {
           const videoId = parseInt(videoIdAttr, 10);
+          console.log("Parsed videoId:", videoId, "isNaN:", isNaN(videoId));
 
           if (!isNaN(videoId)) {
             console.log(
@@ -80,6 +110,7 @@ const Home = () => {
               }
 
               animationFrameRef.current = requestAnimationFrame(() => {
+                console.log("Setting active video to:", videoId);
                 setActiveVideo(videoId);
               });
             } else if (entry.intersectionRatio < 0.3) {
@@ -96,13 +127,18 @@ const Home = () => {
   );
 
   useEffect(() => {
+    console.log("Setting up intersection observer");
     observerRef.current = new IntersectionObserver(handleIntersection, {
       threshold: [0.1, 0.3, 0.5, 0.7, 0.9],
       rootMargin: "0px 0px -10% 0px",
     });
 
-    containerRefs.current.forEach((container) => {
-      if (container) observerRef.current?.observe(container);
+    console.log("Observing containers:", containerRefs.current.length);
+    containerRefs.current.forEach((container, index) => {
+      if (container) {
+        console.log(`Observing container ${index}:`, container);
+        observerRef.current?.observe(container);
+      }
     });
 
     return () => {
@@ -111,7 +147,7 @@ const Home = () => {
       }
       observerRef.current?.disconnect();
     };
-  }, [handleIntersection]);
+  }, [handleIntersection, contents]); // Add contents as dependency to re-setup when content changes
 
   const toggleGlobalMute = () => {
     setGlobalMuted((prev) => !prev);
@@ -133,6 +169,11 @@ const Home = () => {
                     key={video._id}
                     ref={(el) => {
                       containerRefs.current[index] = el;
+                      // Observe the element immediately when it's created
+                      if (el && observerRef.current) {
+                        console.log(`Observing new container ${index}:`, el);
+                        observerRef.current.observe(el);
+                      }
                     }}
                     data-video-id={index.toString()}
                   >

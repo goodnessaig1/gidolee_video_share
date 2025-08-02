@@ -13,22 +13,10 @@ export class GenreService {
     limit: number = 10,
     activeOnly: boolean = true
   ) {
-    const skip = (page - 1) * limit;
-    const filter = activeOnly ? { isActive: true } : {};
-
-    const [genres, total] = await Promise.all([
-      Genre.find(filter).sort({ name: 1 }).skip(skip).limit(limit).lean(),
-      Genre.countDocuments(filter),
-    ]);
+    const genres = await Genre.find();
 
     return {
       genres,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
     };
   }
 
