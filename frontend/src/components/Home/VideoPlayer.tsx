@@ -8,6 +8,7 @@ import {
   FaPause,
   FaPlay,
 } from "react-icons/fa";
+import { useAuth } from "../context/AuthContests";
 
 // Extend Window interface to include hasInteracted
 declare global {
@@ -44,8 +45,8 @@ export const VideoPlayer = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [likes, setLikes] = useState(likesCount || 0);
+  const { showUploadModal } = useAuth();
 
-  // Reset playing state when video becomes inactive
   useEffect(() => {
     if (!isActive) {
       setIsPlaying(false);
@@ -66,7 +67,7 @@ export const VideoPlayer = ({
 
     const handlePlayback = async () => {
       try {
-        if (isActive) {
+        if (isActive && !showUploadModal) {
           console.log(`Starting playback for video: ${src}`);
 
           // For autoplay to work, we need to start muted initially
@@ -121,7 +122,7 @@ export const VideoPlayer = ({
             setIsPlaying(true);
           }
         } else {
-          console.log(`Pausing video: ${src}`);
+          console.log(`Pausing video: ${src} (inactive or upload modal shown)`);
           video.pause();
           setIsPlaying(false);
         }
@@ -132,7 +133,17 @@ export const VideoPlayer = ({
     };
 
     handlePlayback();
-  }, [isActive, src, isMuted]);
+  }, [isActive, src, isMuted, showUploadModal]);
+
+  // Handle upload modal state changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && showUploadModal) {
+      console.log(`Pausing video due to upload modal: ${src}`);
+      video.pause();
+      setIsPlaying(false);
+    }
+  }, [showUploadModal, src]);
 
   // Handle mute state changes
   useEffect(() => {
