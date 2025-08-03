@@ -166,20 +166,22 @@ export const CommentModal = ({
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Add a comment..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
                   disabled={isSubmitting}
                 />
-                <button
-                  type="submit"
-                  disabled={!newComment.trim() || isSubmitting}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
-                >
-                  {isSubmitting ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
+                {isSubmitting ? (
+                  <div className="px-6">
+                    <div className="commenting"></div>
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!newComment.trim() || isSubmitting}
+                    className="px-6 py-2 bg-purple-500 text-white rounded-full text-sm font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                  >
                     <FaPaperPlane size={14} />
-                  )}
-                </button>
+                  </button>
+                )}
               </form>
             </div>
           </motion.div>

@@ -2,9 +2,12 @@
 /* eslint-disable no-irregular-whitespace */
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { apiRequest } from "../../utils/apiRequest";
+import { LuImagePlus } from "react-icons/lu";
+import { FiX } from "react-icons/fi";
+import { MdSystemSecurityUpdateGood } from "react-icons/md";
 
 interface SignUpProps {
   onClose: () => void;
@@ -12,12 +15,35 @@ interface SignUpProps {
 }
 
 const SignUp: React.FC<SignUpProps> = ({ openSignIn }) => {
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (success) {
+      setTimeout(() => {
+        setSuccess(false);
+        openSignIn();
+      }, 2400);
+    }
+  }, [success, openSignIn]);
+
   const validationSchema = Yup.object({
     fullName: Yup.string().required("Full name is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string()
       .min(6, "Min 6 characters")
       .required("Password is required"),
+    profilePicture: Yup.mixed()
+      .required("Image is required")
+      .test("fileType", "Unsupported file type", (value) => {
+        return (
+          value &&
+          ["image/jpeg", "image/png", "image/svg", "image/jpg"].includes(
+            (value as File).type
+          )
+        );
+      }),
   });
 
   const handleSubmit = async (values: any) => {
@@ -28,12 +54,12 @@ const SignUp: React.FC<SignUpProps> = ({ openSignIn }) => {
       formData.append("email", values?.email);
       formData.append("password", values?.password);
 
-      const request = await apiRequest({
+      await apiRequest({
         method: "POST",
-        path: "/login",
-        data: values,
+        path: "/auth/register",
+        data: formData,
       });
-      console.log(request);
+      setSuccess(true);
     } catch (error) {
       console.log(error);
     }
@@ -45,12 +71,68 @@ const SignUp: React.FC<SignUpProps> = ({ openSignIn }) => {
       </h2>
       <div className="px-10">
         <Formik
-          initialValues={{ fullName: "", email: "", password: "" }}
+          initialValues={{
+            fullName: "",
+            email: "",
+            password: "",
+            profilePicture: null as File | null,
+          }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, setFieldValue }) => (
             <Form className="space-y-4">
+              <input
+                type="file"
+                name="profilePicture"
+                accept="image/*"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  if (file) {
+                    console.log(file);
+                    setFieldValue("profilePicture", file);
+                    setPreview(URL.createObjectURL(file));
+                    event.stopPropagation();
+                  }
+                }}
+              />
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="hover:bg-[#7a5af8]/5 transition duration-200 hover:cursor-pointer size-12 rounded-full border border-[#7a5af8] border-dotted flex items-center justify-center"
+              >
+                {preview ? (
+                  <div className="">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFieldValue("profilePicture", null);
+                        setPreview(null);
+                      }}
+                      className="absolute -mt-4 ml-6 bg-black/40 hover:cursor-pointer bg-opacity-50 text-white p-1 rounded-full"
+                    >
+                      <FiX size={16} />
+                    </button>
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="rounded-full object-cover size-11"
+                    />
+                  </div>
+                ) : (
+                  <LuImagePlus color="#7a5af8" size={24} />
+                )}
+              </div>
+
+              <ErrorMessage
+                name="profilePicture"
+                component="div"
+                className="text-red-500 text-xs mt-1"
+              />
+
               <div>
                 <label className="block text-sm font-medium">Full Name</label>
                 <Field
@@ -100,14 +182,23 @@ const SignUp: React.FC<SignUpProps> = ({ openSignIn }) => {
                   confirm that you have read Gidshare Privacy Policy.
                 </span>
               </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-10 py-3 w-full hover:cursor-pointer hover:bg-[#7a5af8]/60 transition duration-200 rounded-[16px] bg-[#7A5AF8] text-white font-semibold"
-                // className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 transition"
-              >
-                {isSubmitting ? "Registering..." : "Register"}
-              </button>
+              {success ? (
+                <div className="flex h-10 w-rull items-center justify-center">
+                  <MdSystemSecurityUpdateGood size={28} color="#7a5af8" />
+                </div>
+              ) : isSubmitting ? (
+                <div className="flex h-10 w-rull items-center justify-center">
+                  <span className="loader_spinner"></span>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-10 py-3 w-full hover:cursor-pointer hover:bg-[#7a5af8]/60 transition duration-200 rounded-[16px] bg-[#7A5AF8] text-white font-semibold"
+                >
+                  {isSubmitting ? "Registering..." : "Register"}
+                </button>
+              )}
             </Form>
           )}
         </Formik>

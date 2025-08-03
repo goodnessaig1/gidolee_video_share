@@ -308,14 +308,128 @@ export class ContentService {
   ) {
     const skip = (page - 1) * limit;
 
-    const contents = await Content.find({ user: userId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("user", "fullname profilePicture")
-      .populate("genre", "name slug");
+    const pipeline = [
+      { $match: { user: new mongoose.Types.ObjectId(userId) } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "genres",
+          localField: "genre",
+          foreignField: "_id",
+          as: "genre",
+        },
+      },
+      { $unwind: { path: "$genre", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "content",
+          as: "comments",
+        },
+      },
+      {
+        $lookup: {
+          from: "likes",
+          localField: "_id",
+          foreignField: "content",
+          as: "likes",
+        },
+      },
+      {
+        $lookup: {
+          from: "shares",
+          localField: "_id",
+          foreignField: "content",
+          as: "shares",
+        },
+      },
+      {
+        $addFields: {
+          commentCount: { $size: "$comments" },
+          likeCount: { $size: "$likes" },
+          shareCount: { $size: "$shares" },
+          isLiked: {
+            $cond: {
+              if: {
+                $gt: [
+                  {
+                    $size: {
+                      $filter: {
+                        input: "$likes",
+                        cond: {
+                          $eq: [
+                            "$$this.user",
+                            new mongoose.Types.ObjectId(userId),
+                          ],
+                        },
+                      },
+                    },
+                  },
+                  0,
+                ],
+              },
+              then: true,
+              else: false,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          title: { $ifNull: ["$title", ""] },
+          description: { $ifNull: ["$description", ""] },
+          mediaUrl: 1,
+          mediaType: { $ifNull: ["$mediaType", "video"] },
+          thumbnail: { $ifNull: ["$thumbnail", null] },
+          duration: { $ifNull: ["$duration", null] },
+          views: { $ifNull: ["$views", 0] },
+          likes: { $ifNull: ["$likes", []] },
+          shares: { $ifNull: ["$shares", []] },
+          isPublic: { $ifNull: ["$isPublic", true] },
+          tags: { $ifNull: ["$tags", []] },
+          location: { $ifNull: ["$location", null] },
+          genre: {
+            _id: "$genre._id",
+            name: "$genre.name",
+            slug: "$genre.slug",
+          },
+          user: {
+            _id: "$user._id",
+            fullName: "$user.fullName",
+            profilePicture: "$user.profilePicture",
+          },
+          commentCount: 1,
+          likeCount: 1,
+          shareCount: 1,
+          isLiked: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ];
 
-    const total = await Content.countDocuments({ user: userId });
+    const contents = await Content.aggregate(pipeline as any[]);
+
+    const totalPipeline = [
+      { $match: { user: new mongoose.Types.ObjectId(userId) } },
+      { $count: "total" },
+    ];
+
+    const totalResult = await Content.aggregate(totalPipeline as any[]);
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
     return {
       contents,

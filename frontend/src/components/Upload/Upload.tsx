@@ -52,24 +52,17 @@ const VideoUploadModal = ({ onClose, isOpen }: VideoUploadModalProps) => {
     { setSubmitting }: FormikHelpers<FormValues>
   ) => {
     if (!values.videoFile) return;
-    // console.log(values);
     const formData = new FormData();
     formData.append("mediaUrl", values.videoFile);
-
     formData.append("genre", genreId);
     formData.append("title", values.title);
-    // setIsUploading(true);
     try {
-      // await onUpload(values.videoFile, values.title, values.genre);
-      // onClose();
-      const request = await apiRequest({
+      await apiRequest({
         method: "POST",
         path: "/content",
         data: formData,
       });
       queryClient.invalidateQueries({ queryKey: [CONTENTS_KEY] });
-
-      console.log(request);
     } catch (error) {
       console.error("Upload failed:", error);
     } finally {
@@ -85,8 +78,6 @@ const VideoUploadModal = ({ onClose, isOpen }: VideoUploadModalProps) => {
     const file = event.currentTarget.files?.[0];
     if (file) {
       setFieldValue("videoFile", file);
-
-      // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
@@ -134,9 +125,6 @@ const VideoUploadModal = ({ onClose, isOpen }: VideoUploadModalProps) => {
                 {({ values, setFieldValue, isSubmitting }) => (
                   <Form className="p-4">
                     <div className="mb-4">
-                      {/* <label className="block text-sm font-medium mb-2">
-                        Caption
-                      </label> */}
                       <Field
                         name="title"
                         type="text"
@@ -211,9 +199,6 @@ const VideoUploadModal = ({ onClose, isOpen }: VideoUploadModalProps) => {
                     </div>
 
                     <div className="mb-4">
-                      {/* <label className="block text-sm font-medium mb-2">
-                        Video File
-                      </label> */}
                       <div
                         className="mt-1 flex justify-center h-[280px] flex items-center justify-center px-6 pt-5 pb-6 bg-[#F6F7F7] rounded-md cursor-pointer"
                         onClick={() => {

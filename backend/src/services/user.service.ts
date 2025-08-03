@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import uploadService from "./upload.service";
 
 export const createUser = async (data: IUser, file: any) => {
-  const { email, password, fullName, role } = data;
+  const { email, password, fullName } = data;
 
   const user = await User.findOne({ email });
   if (user) {
@@ -29,7 +29,7 @@ export const createUser = async (data: IUser, file: any) => {
     email,
     password: hashed,
     profilePicture,
-    role,
+    role: "user",
   };
   const newUser = await User.create(newUserData);
   return newUser;

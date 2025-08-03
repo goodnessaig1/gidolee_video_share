@@ -6,7 +6,6 @@ const router = express.Router();
 router.post(
   "/register",
   upload.single("profilePicture"),
-
   authController.register
 );
 router.post("/login", authController.login);

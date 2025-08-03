@@ -50,3 +50,19 @@ export const useContentComments = (contentId: string) => {
     queryKey: [CONTENTS_COMMENTS_KEY, contentId],
   });
 };
+
+export const useContentsByUser = (
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+) => {
+  return useQuery({
+    queryFn: () =>
+      apiRequest({
+        method: "GET",
+        path: `/content/user/${userId}?page=${page}&limit=${limit}`,
+      }),
+    queryKey: [CONTENTS_KEY, "user", userId, page, limit],
+    enabled: !!userId,
+  });
+};

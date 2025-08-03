@@ -146,7 +146,7 @@ const Home = () => {
       }
       observerRef.current?.disconnect();
     };
-  }, [handleIntersection, contents]); // Add contents as dependency to re-setup when content changes
+  }, [handleIntersection, contents]);
 
   const toggleGlobalMute = () => {
     setGlobalMuted((prev) => !prev);
@@ -154,7 +154,7 @@ const Home = () => {
 
   return (
     <PageLayout>
-      <div className="w-full flex justify-center h-screen">
+      <div className="pl-16 pr-2 w-full flex justify-center h-screen">
         <div className="max-w-[500px] w-full  h-full overflow-y-auto">
           {isLoading ? (
             <div className="absolute left-0 top-0 h-screen w-full flex items-center justify-center">
@@ -168,13 +168,11 @@ const Home = () => {
                     key={video._id}
                     ref={(el) => {
                       containerRefs.current[index] = el;
-                      // Observe the element immediately when it's created
                       if (el && observerRef.current) {
                         console.log(`Observing new container ${index}:`, el);
                         observerRef.current.observe(el);
                       }
                     }}
-                    onClick={() => console.log(video)}
                     data-video-id={index.toString()}
                   >
                     <VideoPlayer
@@ -198,7 +196,7 @@ const Home = () => {
           )}
         </div>
       </div>
-      <div className="fixed right-0 top-0">
+      <div className="fixed right-0 top-0 hidden md:block">
         <div className=" flex gap-4 mt-10 pr-8">
           <div className="flex items-center gap-1">
             <img src={flag} alt="flag" />
@@ -224,7 +222,7 @@ const Home = () => {
           )}
         </div>
       </div>
-      <div className="fixed w-[200px] top-0 items-center flex h-screen justify-center right-0 ">
+      <div className="fixed hidden w-[200px] top-0 items-center lg:flex h-screen justify-center right-0 ">
         <div className="flex flex-col gap-4">
           <div className="text-[#6E6E6E] hover:cursor-pointer hover:text-[#6E6E6E]/60 transition duration-200">
             <IoIosArrowDropup size={42} />

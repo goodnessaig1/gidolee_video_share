@@ -1,42 +1,85 @@
-# TikTok-like Application API Documentation
-
-## Base URL
-
-```
-http://localhost:4000
-```
-
-## Authentication
-
-All protected routes require authentication. Include the user ID in the request context.
+# API Documentation
 
 ## Content Endpoints
 
-### Create Content
+### Get All Contents
 
-**POST** `/content`
+- **GET** `/api/v1/content`
+- **Description**: Get all contents with pagination and optional filtering
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Items per page (default: 10)
+  - `genre` (optional): Filter by genre ID
+- **Response**: List of contents with pagination info
+
+### Get Contents by User
+
+- **GET** `/api/v1/content/user/:userId`
+- **Description**: Get all contents created by a specific user
+- **Path Parameters**:
+  - `userId`: The ID of the user whose contents to retrieve
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Items per page (default: 10)
+- **Response**:
 
 ```json
 {
-  "title": "My Video",
-  "description": "Check out this amazing video!",
-  "mediaUrl": "https://example.com/video.mp4",
-  "mediaType": "video",
-  "thumbnail": "https://example.com/thumbnail.jpg",
-  "duration": 30,
-  "isPublic": true,
-  "tags": ["funny", "viral"],
-  "location": "New York"
+  "success": true,
+  "data": {
+    "contents": [
+      {
+        "_id": "content_id",
+        "title": "Video Title",
+        "description": "Video description",
+        "mediaUrl": "https://example.com/video.mp4",
+        "mediaType": "video",
+        "thumbnail": "https://example.com/thumbnail.jpg",
+        "duration": 120,
+        "views": 1000,
+        "likes": [],
+        "shares": [],
+        "isPublic": true,
+        "tags": ["tag1", "tag2"],
+        "location": "New York",
+        "genre": {
+          "_id": "genre_id",
+          "name": "Comedy",
+          "slug": "comedy"
+        },
+        "user": {
+          "_id": "user_id",
+          "fullName": "John Doe",
+          "profilePicture": "https://example.com/profile.jpg"
+        },
+        "commentCount": 5,
+        "likeCount": 10,
+        "shareCount": 2,
+        "isLiked": false,
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2024-01-01T00:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 25,
+      "totalPages": 3
+    }
+  }
 }
 ```
 
-### Get All Contents
+### Get Contents by Genre
 
-**GET** `/content?page=1&limit=10`
-
-- Returns paginated list of public contents with aggregated data
-- Includes comment count, like count, share count, and user info
-- Automatically increments view count
+- **GET** `/api/v1/content/genre/:genreId`
+- **Description**: Get all contents filtered by genre
+- **Path Parameters**:
+  - `genreId`: The ID of the genre to filter by
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Items per page (default: 10)
+- **Response**: List of contents filtered by genre with pagination info
 
 ### Get Content by ID
 
@@ -44,12 +87,6 @@ All protected routes require authentication. Include the user ID in the request 
 
 - Returns specific content with all related data
 - Increments view count
-
-### Get Contents by User
-
-**GET** `/content/user/:userId?page=1&limit=10`
-
-- Returns all contents by a specific user
 
 ### Update Content
 
