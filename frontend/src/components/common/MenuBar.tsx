@@ -7,10 +7,17 @@ import { BiLogOut } from "react-icons/bi";
 import { useAuth } from "../context/AuthContests";
 import VideoUploadModal from "../Upload/Upload";
 import ProfilePicture from "../../utils/ProfilePicture";
+import { USER_DETAILS } from "../../utils/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 const MenuBar = ({ openModal }: { openModal: () => void }) => {
   const { user, showUploadModal, setShowUploadModal } = useAuth();
+  const queryClient = useQueryClient();
 
+  const handleLogout = async () => {
+    await localStorage.removeItem("token");
+    await queryClient.invalidateQueries({ queryKey: [USER_DETAILS] });
+  };
   return (
     <>
       {showUploadModal && (
@@ -74,7 +81,10 @@ const MenuBar = ({ openModal }: { openModal: () => void }) => {
               <span className="">Profile</span>
             </NavLink>
             {user && (
-              <div className="cursor-pointer h-10 px-1 w-full flex items-center gap-4 text-[#161823] hover:text-gray-400 hover:bg-[#eeeeee]/40 cursor-pointer rounded-md transition duration-200 font-semibold">
+              <div
+                onClick={handleLogout}
+                className="cursor-pointer h-10 px-1 w-full flex items-center gap-4 text-[#161823] hover:text-gray-400 hover:bg-[#eeeeee]/40 cursor-pointer rounded-md transition duration-200 font-semibold"
+              >
                 <BiLogOut size={24} />
                 <span className="">Logout</span>
               </div>

@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContests";
 import { useContents } from "../../utils/hooks";
 import ProfilePicture from "../../utils/ProfilePicture";
 
-interface ContentItem {
+export interface ContentItem {
   _id: string;
   title: string;
   mediaUrl: string;
@@ -32,7 +32,9 @@ interface ContentItem {
   thumbnail: string | null;
   duration: number | null;
   views: number;
-  likes: unknown[];
+  likes: {
+    user: string;
+  }[];
   shares: unknown[];
   isPublic: boolean;
   tags: string[];
@@ -49,9 +51,7 @@ const Home = () => {
 
   const { data, isLoading } = useContents();
   const contents = data?.data?.contents || [];
-  console.log(contents);
 
-  // Set first video as active when content loads
   useEffect(() => {
     if (contents.length > 0 && activeVideo === null) {
       console.log("Setting first video as active");
@@ -59,7 +59,6 @@ const Home = () => {
     }
   }, [contents, activeVideo]);
 
-  // Track user interaction to enable autoplay with sound
   useEffect(() => {
     const handleUserInteraction = () => {
       if (!window.hasInteracted) {
@@ -68,7 +67,6 @@ const Home = () => {
       }
     };
 
-    // Listen for various user interactions
     document.addEventListener("click", handleUserInteraction);
     document.addEventListener("touchstart", handleUserInteraction);
     document.addEventListener("keydown", handleUserInteraction);
@@ -176,6 +174,7 @@ const Home = () => {
                         observerRef.current.observe(el);
                       }
                     }}
+                    onClick={() => console.log(video)}
                     data-video-id={index.toString()}
                   >
                     <VideoPlayer
@@ -190,7 +189,8 @@ const Home = () => {
                       numberOfComments={video.commentCount}
                       likesCount={video.likeCount}
                       videoId={video._id}
-                      user={video?.user}
+                      isLiked={video?.isLiked}
+                      video={video}
                     />
                   </div>
                 ))}

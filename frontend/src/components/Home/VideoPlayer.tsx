@@ -8,9 +8,13 @@ import {
   FaPause,
   FaPlay,
 } from "react-icons/fa";
-import { useAuth, type User } from "../context/AuthContests";
+import { useAuth } from "../context/AuthContests";
 import { CommentModal } from "./CommentModal";
 import ProfilePicture from "../../utils/ProfilePicture";
+import { apiRequest } from "../../utils/apiRequest";
+import { useQueryClient } from "@tanstack/react-query";
+import { CONTENTS_KEY } from "../../utils/hooks";
+import type { ContentItem } from "./Home";
 
 // Extend Window interface to include hasInteracted
 declare global {
@@ -27,11 +31,12 @@ interface VideoPlayerProps {
   genre?: string;
   onToggleMute: () => void;
   isActive: boolean;
+  isLiked: boolean;
   preload?: boolean;
   numberOfComments?: number;
   likesCount?: number;
   videoId?: string;
-  user: Partial<User>;
+  video: ContentItem;
 }
 
 export const VideoPlayer = ({
@@ -46,13 +51,25 @@ export const VideoPlayer = ({
   numberOfComments,
   likesCount,
   videoId,
-  user,
+  isLiked,
+  video,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [likes, setLikes] = useState(likesCount || 0);
+  const [liked, setLiked] = useState(isLiked || false);
   const { showUploadModal } = useAuth();
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const { user } = useAuth();
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const isLiked = video?.likes?.some(
+      (like) => String(like.user) == String(user?._id)
+    );
+    setLikes(likesCount || 0);
+    setLiked(isLiked);
+  }, [likesCount, video, user, isLiked]);
 
   useEffect(() => {
     if (!isActive) {
@@ -60,7 +77,6 @@ export const VideoPlayer = ({
     }
   }, [isActive]);
 
-  // Handle play/pause when active state changes
   useEffect(() => {
     const video = videoRef.current;
     if (!video) {
@@ -85,14 +101,12 @@ export const VideoPlayer = ({
             `Set video muted to: ${shouldStartMuted} (autoplay strategy)`
           );
 
-          // Always try to play immediately, then handle loading if needed
           try {
             console.log(`Attempting to play video: ${src}`);
             await video.play();
             console.log(`Successfully started playing: ${src}`);
             setIsPlaying(true);
 
-            // If we started muted due to autoplay restrictions, unmute after a short delay
             if (shouldStartMuted && !isMuted) {
               setTimeout(() => {
                 if (video && window.hasInteracted) {
@@ -208,8 +222,28 @@ export const VideoPlayer = ({
     }
   };
 
-  const handleLike = () => {
-    setLikes((prev) => (prev || 0) + 1);
+  const handleLike = async () => {
+    setLiked((prevLiked) => {
+      const newLiked = !prevLiked;
+      setLikes((prevLikes) => {
+        const newLikes = newLiked ? prevLikes + 1 : prevLikes - 1;
+        return newLikes;
+      });
+      return newLiked;
+    });
+
+    try {
+      await apiRequest({
+        method: "POST",
+        path: "/likes/toggle",
+        data: { contentId: videoId, type: "content" },
+      });
+      queryClient.invalidateQueries({
+        queryKey: [CONTENTS_KEY],
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const openCommentModal = () => {
@@ -261,12 +295,14 @@ export const VideoPlayer = ({
       <div className="mt-auto">
         <div className="space-y-4 text-black">
           <ProfilePicture
-            image={user?.profilePicture ?? ""}
-            username={user?.fullName ?? ""}
+            image={video?.user?.profilePicture ?? ""}
+            username={video?.user?.fullName ?? ""}
           />
           <button
             onClick={handleLike}
-            className="flex flex-col items-center hover:text-pink-500 transition"
+            className={`flex flex-col items-center ${
+              liked ? "text-pink-500" : "hover:text-pink-500"
+            } transition`}
           >
             <FaHeart className="text-xl" />
             <span className="text-xs mt-1">{likes}</span>

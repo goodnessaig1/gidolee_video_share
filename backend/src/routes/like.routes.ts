@@ -1,10 +1,11 @@
 import express from "express";
 import likeController from "../controllers/like.controller";
+import { isLoggedIn } from "../middleware/isLoggedIn";
 
 const router = express.Router();
 
 // Like routes
-router.post("/toggle", likeController.toggleLike as any);
+router.post("/toggle", isLoggedIn, likeController.toggleLike as any);
 router.get("/check", likeController.isLikedByUser as any);
 router.get("/count", likeController.getLikeCount as any);
 router.get("/users", likeController.getLikedUsers as any);

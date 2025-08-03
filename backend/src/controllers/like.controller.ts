@@ -7,19 +7,19 @@ class LikeController {
   // Toggle like on content or comment
   async toggleLike(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?._id;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
       const { contentId, commentId, type } = req.body;
-
-      if (!type || (type !== "content" && type !== "comment")) {
-        return res.status(400).json({
-          success: false,
-          message: "Type must be 'content' or 'comment'",
-        });
-      }
+      // console.log(type);
+      // if (!type || (type !== "content" && type !== "comment")) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: "Type must be 'content' or 'comment'",
+      //   });
+      // }
 
       if (type === "content" && !contentId) {
         return res.status(400).json({
@@ -60,7 +60,7 @@ class LikeController {
   // Check if user has liked content or comment
   async isLikedByUser(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?._id;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -191,7 +191,7 @@ class LikeController {
   // Remove like
   async removeLike(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?._id;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }

@@ -3,7 +3,7 @@ import { ReactNode, useState } from "react";
 import { createContext, useContext } from "react";
 import { useUser } from "../../utils/hooks";
 export interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   profilePicture: string;

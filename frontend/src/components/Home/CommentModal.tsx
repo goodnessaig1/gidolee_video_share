@@ -27,7 +27,7 @@ export const CommentModal = ({
 }: CommentModalProps) => {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log(videoId);
+
   const { data, isLoading } = useContentComments(videoId);
   const commentsData = data?.data?.comments ?? [];
   const queryClient = useQueryClient();
@@ -35,7 +35,7 @@ export const CommentModal = ({
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    // setIsSubmitting(true);
+    setIsSubmitting(true);
     try {
       await apiRequest({
         method: "POST",
@@ -49,25 +49,6 @@ export const CommentModal = ({
         queryKey: [CONTENTS_KEY],
       });
 
-      // TODO: Replace with actual API call
-      // const response = await apiRequest.post(`/comments`, {
-      //   content: newComment,
-      //   videoId: videoId
-      // });
-      // Mock: Add comment to local state
-      // const newCommentObj: Comment = {
-      //   _id: Date.now().toString(),
-      //   content: newComment,
-      //   user: {
-      //     _id: "currentUser",
-      //     fullName: "You",
-      //     profilePicture: "https://via.placeholder.com/40",
-      //   },
-      //   createdAt: new Date().toISOString(),
-      //   likes: 0,
-      //   isLiked: false,
-      // };
-      // setComments((prev) => [newCommentObj, ...prev]);
       setNewComment("");
     } catch (error) {
       console.error("Error posting comment:", error);
