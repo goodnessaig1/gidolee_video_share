@@ -1,6 +1,6 @@
 import Logo from "../../assets/logo.svg";
 import LogoMd from "../../../public/gid.svg";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { IoMdHome } from "react-icons/io";
 import { MdOutlineAddBox, MdOutlineExplore } from "react-icons/md";
 import { LiaUserCircle, LiaUserPlusSolid } from "react-icons/lia";
@@ -17,12 +17,14 @@ const MenuBar = ({ openModal }: { openModal: () => void }) => {
   const queryClient = useQueryClient();
   const [loggingOut, setLoggingOut] = useState(false);
 
+  const navigate = useNavigate();
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
       await localStorage.removeItem("token");
       await queryClient.invalidateQueries({ queryKey: [USER_DETAILS] });
       await queryClient.setQueryData([USER_DETAILS], null);
+      navigate("/");
     } catch (error) {
       console.log(error);
     } finally {

@@ -309,12 +309,12 @@ export const VideoPlayer = ({
           </button>
           <button
             onClick={openCommentModal}
-            className="flex flex-col items-center hover:text-blue-400 transition"
+            className="flex flex-col items-center hover:text-[#7A5AF8] transition"
           >
             <FaCommentDots className="text-xl" />
             <span className="text-xs mt-1">{numberOfComments}</span>
           </button>
-          <button className="flex flex-col items-center hover:text-green-400 transition">
+          <button className="flex flex-col items-center hover:text-[#7A5AF8] transition">
             <FaShare className="text-xl" />
             <span className="text-xs mt-1">Share</span>
           </button>
@@ -328,6 +328,7 @@ export const VideoPlayer = ({
           videoId={videoId}
           videoTitle={caption}
           username={username}
+          video={video}
         />
       )}
     </div>

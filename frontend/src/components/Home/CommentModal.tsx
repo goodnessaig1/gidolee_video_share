@@ -9,6 +9,8 @@ import {
   useContentComments,
 } from "../../utils/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import type { ContentItem } from "./Home";
+import ProfilePicture from "../../utils/ProfilePicture";
 
 interface CommentModalProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ interface CommentModalProps {
   videoId: string;
   videoTitle: string;
   username: string;
+  video: ContentItem;
 }
 
 export const CommentModal = ({
@@ -24,6 +27,7 @@ export const CommentModal = ({
   videoId,
   videoTitle,
   username,
+  video,
 }: CommentModalProps) => {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,9 +95,13 @@ export const CommentModal = ({
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                <ProfilePicture
+                  image={video?.user?.profilePicture ?? ""}
+                  username={video?.user?.fullName ?? ""}
+                />
+                {/* <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                   <span className="text-gray-600 font-semibold">📹</span>
-                </div>
+                </div> */}
                 <div>
                   <h3 className="font-semibold text-sm">{videoTitle}</h3>
                   <p className="text-xs text-gray-500">@{username}</p>

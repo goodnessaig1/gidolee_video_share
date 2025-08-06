@@ -43,7 +43,9 @@ const Profile = () => {
         </div>
 
         {/* User Videos */}
-        <UserVideos userId={user._id} onAddNew={handleAddNew} />
+        {user?.role !== "user" && (
+          <UserVideos userId={user._id} onAddNew={handleAddNew} />
+        )}
       </div>
     </PageLayout>
   );
